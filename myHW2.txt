@@ -1,0 +1,112 @@
+Anupkumar N J
+CS 558
+101880602
+Date : 25-09-19
+
+
+
+import Data.List
+import System.IO
+
+listInsert :: a -> Int -> [a] -> [a]
+listInsert e 0 l = e : l
+listInsert e n (l:ls) = l : listInsert e (n-1) ls
+
+passInsert :: a -> [a] -> Int -> [[a]]
+passInsert e l (-1) = []
+passInsert e l n = listInsert e n l : passInsert e l (n-1)
+
+-- 2.1 a
+distribute :: a -> [a] -> [[a]]
+distribute e [] = [[]]
+distribute e l = passInsert e l (sum[1 | _ <- l])
+
+input : distribute 1 [2,3] 
+output: [[1,2,3], [2,1,3], [2,3,1]].
+
+
+callDistribute :: a -> [a] -> [[a]]
+callDistribute l (y:ys) = [l : m | m <- distribute y ys]
+
+headSwitch :: Int -> [a] -> [[[a]]]
+headSwitch 0 l = []
+headSwitch n (l:ls) = concat[callDistribute l ls : headSwitch (n-1) (ls ++ [l])]
+
+-- 2.1 b
+permutation :: [a] -> [[a]]
+permutation l = concat (headSwitch (sum[1 | _ <- l]) l)
+
+input : permutations [1,2,2]
+output : [[1,2,2], [2,1,2], [2,1,2], [1,2,2], [2,2,1], [2,2,1]]
+
+data Tree a = Leaf | Node a (Tree a) (Tree a) deriving (Eq, Show)
+
+mono :: a -> Tree a  
+mono l = Node l Leaf Leaf  
+
+
+ht :: Tree a -> Int
+ht Leaf = 1
+ht (Node a left right) = 1 + if ht right > ht left then ht right else ht left
+
+-- 2.2 b
+treeRow :: Int -> Tree a -> [a]
+treeRow 0 (Node a left right) = [a]
+treeRow n Leaf = []
+treeRow n (Node a left right) = treeRow (n-1) left ++ treeRow (n-1) right
+
+
+findRow :: Tree a -> Int -> [a]
+findRow t n | n > ht t = []
+findRow t n = treeRow n t ++ findRow t (n+1)
+
+input : treeRow 1 t
+output : [10,17].
+
+-- 2.2 c
+breadthFirst :: Tree a -> [a]
+breadthFirst t = findRow t 0
+
+input : breadthFirst t 
+output : [51,10,17,8,42].
+
+-- Sample tree
+binTree = Node 51 (Node 10 Leaf Leaf)
+ (Node 17 (Node 8 Leaf Leaf)
+ (Node 42 Leaf Leaf))
+
+-- 2.3
+
+PROVING PROGRAM:
+
+PROVE filter p (map f l ) = map f (filter (p l))
+
+from p x = p (f x) we get:
+
+filter p (map f l ) = map f (filter (p f) l)
+
+
+base:
+
+filter p (map f [] )= filter p [] 
+	= [] 
+	= map f [] 	
+	= map f (filter (p l) []) 
+
+WHEN P IS TRUE:
+
+filter p (map f (x:xs)) = filter p (f x : map f xs)  
+		= f x : filter p (map f xs) 
+		= f x : map f (filter (p f) xs) //using inductive hypothesis
+		= map f (x : filter (p f) xs) 
+		= map f (filter (p f) (x:xs))
+
+WHEN P IS FALSE:
+
+filter p (map f (x:xs)) = filter p (fx : map f xs ) 
+		= filter p (map xs) 
+		= map f (filter (p f) xs) //using inductive hypothesis
+		= map f (filter (p f) (x:xs)) 
+
+
+Hence prooved.
